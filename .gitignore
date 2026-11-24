@@ -1,0 +1,17 @@
+# Local credentials and signing materials
+private-config.js
+.env
+.env.*
+*.pem
+*.key
+keys/
+
+# Build and local install artifacts
+*.crx
+VioEdu-QA-unpacked/
+node_modules/
+*.log
+
+# Local/AI working notes intentionally excluded from the repository
+GEMINI.md
+prompt.txt

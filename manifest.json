@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "VioSolver! ProBypasser",
+  "version": "1.7.0",
+  "description": "Internal VioEdu QA tool for verifying question-bank answers (staff-key gated).",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "*://*.vio.edu.vn/*",
+    "https://vireonix.ai/*",
+    "https://openrouter.ai/*",
+    "https://api.groq.com/*",
+    "https://raw.githubusercontent.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "VioSolver Settings"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.vio.edu.vn/*"
+      ],
+      "js": [
+        "interceptor.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "*://*.vio.edu.vn/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
