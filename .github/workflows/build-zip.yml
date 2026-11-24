@@ -30,6 +30,25 @@ jobs:
       - name: Regenerate integrity pins
         run: node scripts/compute-integrity.js
 
+      - name: Create private staff config for package
+        env:
+          VIOEDU_STAFF_KEY_SECRET: ${{ secrets.VIOEDU_STAFF_KEY_SECRET }}
+        shell: bash
+        run: |
+          if [[ -z "$VIOEDU_STAFF_KEY_SECRET" ]]; then
+            echo "::error::Set the VIOEDU_STAFF_KEY_SECRET repository secret to package staff-key support."
+            exit 1
+          fi
+          node <<'NODE'
+          const fs = require('node:fs');
+          fs.writeFileSync(
+            'private-config.js',
+            `self.VIOEDU_STAFF_KEY_SECRET = ${JSON.stringify(process.env.VIOEDU_STAFF_KEY_SECRET)};\n` +
+            `self.VIOEDU_STAFF_ADMIN_PASS = '';\n`,
+            { mode: 0o600 }
+          );
+          NODE
+
       - name: Package source ZIP
         id: package
         shell: bash
@@ -39,7 +58,7 @@ jobs:
           mkdir -p "$package_dir/scripts" "$GITHUB_WORKSPACE/dist"
 
           cp manifest.json background.js content.js content.css popup.js popup.html interceptor.js \
-            integrity.hashes.json integrity-pin.js private-config.example.js \
+            integrity.hashes.json integrity-pin.js private-config.js \
             README.md README_VIETNAMESE.md TERMS.md PRIVACY.md LICENSE CODE_OF_CONDUCT.md SECURITY.md \
             "$package_dir/"
           cp scripts/compute-integrity.js "$package_dir/scripts/"
