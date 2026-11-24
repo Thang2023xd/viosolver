@@ -1,8 +1,8 @@
-# VioEdu QA Assistant
+# VioSolver!
 
 **Language:** English · [Tiếng Việt](README_VIETNAMESE.md)
 
-Chrome extension for authorized testing of VioEdu exercises. It detects question types, sends prompts to a selected AI provider, and can apply answers for QA workflows.
+Chrome extension for "authorized testing" of VioEdu exercises. It detects question types, sends prompts to a selected AI provider, and can apply answers for users.
 
 ## Providers
 
