@@ -27,7 +27,7 @@ Secret ký staff key cần thiết cho chức năng xác thực và tạo staff 
 
 ## Build ZIP tự động
 
-GitHub Actions tự build ZIP từ source khi push lên `main`, push tag phiên bản dạng `v*`, hoặc chạy workflow thủ công. Mỗi lần build đều tạo artifact tải trong tab **Actions**. Push lên `main` cũng cập nhật prerelease `nightly`; tag phiên bản sẽ tạo hoặc cập nhật GitHub Release tương ứng.
+GitHub Actions tự build ZIP từ source khi push lên `main`, push tag phiên bản dạng `v*`, hoặc chạy workflow thủ công. Mỗi lần build đều tạo artifact tải trong tab **Actions**. Push lên `main` sẽ tạo hoặc cập nhật stable release `main` và đánh dấu là bản mới nhất; tag phiên bản sẽ tạo hoặc cập nhật GitHub Release tương ứng.
 
 Để phát hành bản mới, push source lên GitHub rồi push một tag, ví dụ `v1.8.0`.
 

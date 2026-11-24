@@ -27,7 +27,7 @@ The staff-key signing secret is required for staff-key validation and minting. K
 
 ## Automated ZIP builds
 
-GitHub Actions builds a ZIP from the extension source on pushes to `main`, version tags (`v*`), and manual runs. Every build publishes a downloadable workflow artifact. Pushes to `main` also update the `nightly` prerelease; version tags create or update a versioned GitHub Release.
+GitHub Actions builds a ZIP from the extension source on pushes to `main`, version tags (`v*`), and manual runs. Every build publishes a downloadable workflow artifact. Pushes to `main` create or update the stable `main` release and mark it as the latest release; version tags create or update a versioned GitHub Release.
 
 To publish a release, push a tag such as `v1.8.0` after pushing the source to GitHub.
 

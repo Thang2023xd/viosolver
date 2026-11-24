@@ -90,13 +90,17 @@ jobs:
               gh release create "$release_tag" "dist/$ZIP_NAME" --generate-notes
             fi
           else
-            release_tag=nightly
+            release_tag=main
             if gh release view "$release_tag" >/dev/null 2>&1; then
               gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$release_tag" \
                 -f sha="$GITHUB_SHA" -F force=true
               gh release upload "$release_tag" "dist/$ZIP_NAME" --clobber
+              gh release edit "$release_tag" --latest --title "VioSolver (Main)"
             else
               gh release create "$release_tag" "dist/$ZIP_NAME" --target "$GITHUB_SHA" \
-                --prerelease --title "Nightly build" --notes "Automated build from the latest main commit."
+                --latest --title "VioSolver (Main)" --notes "Stable release built from the main branch."
+            fi
+            if gh release view nightly >/dev/null 2>&1; then
+              gh release delete nightly --cleanup-tag --yes
             fi
           fi
