@@ -1,5 +1,7 @@
 # VioEdu QA Assistant
 
+**Language:** English · [Tiếng Việt](README_VIETNAMESE.md)
+
 Chrome extension for authorized testing of VioEdu exercises. It detects question types, sends prompts to a selected AI provider, and can apply answers for QA workflows.
 
 ## Providers
@@ -16,6 +18,12 @@ API credentials are stored in `chrome.storage.local` in the user's browser. Ques
 2. Run `node scripts/compute-integrity.js` after changing extension files.
 3. Open `chrome://extensions/`, enable **Developer mode**, choose **Load unpacked**, and select this repository directory.
 4. Set the provider and API key in the extension popup or page HUD.
+
+## Automated ZIP builds
+
+GitHub Actions builds a ZIP from the extension source on pushes to `main`, version tags (`v*`), and manual runs. Pushes and manual runs publish a downloadable workflow artifact; a version tag also attaches the ZIP to a GitHub Release.
+
+To publish a release, push a tag such as `v1.8.0` after pushing the source to GitHub.
 
 The staff-key signing secret is required for staff-key validation and minting. Keep it out of source control. Key generation also requires `VIOEDU_STAFF_KEY_SECRET` in the environment; see `scripts/generate-staff-keys.js`.
 

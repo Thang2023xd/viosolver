@@ -1,0 +1,66 @@
+name: Build extension ZIP
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Regenerate integrity pins
+        run: node scripts/compute-integrity.js
+
+      - name: Package source ZIP
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir="$RUNNER_TEMP/vioedu-qa-zip"
+          mkdir -p "$package_dir/scripts" "$GITHUB_WORKSPACE/dist"
+
+          cp manifest.json background.js content.js content.css popup.js popup.html interceptor.js \
+            integrity.hashes.json integrity-pin.js private-config.example.js \
+            README.md README_VIETNAMESE.md TERMS.md PRIVACY.md LICENSE CODE_OF_CONDUCT.md SECURITY.md \
+            "$package_dir/"
+          cp scripts/compute-integrity.js "$package_dir/scripts/"
+
+          version="${GITHUB_REF_NAME//\//-}"
+          zip_name="VioEdu-QA-${version}.zip"
+          (cd "$package_dir" && zip -qr "$GITHUB_WORKSPACE/dist/$zip_name" .)
+          echo "zip_name=$zip_name" >> "$GITHUB_OUTPUT"
+
+      - name: Upload downloadable workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VioEdu-QA-${{ github.ref_name }}
+          path: dist/${{ steps.package.outputs.zip_name }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach ZIP to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZIP_NAME: ${{ steps.package.outputs.zip_name }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "dist/$ZIP_NAME" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "dist/$ZIP_NAME" --generate-notes
+          fi

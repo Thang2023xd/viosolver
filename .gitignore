@@ -8,6 +8,7 @@ keys/
 
 # Build and local install artifacts
 *.crx
+dist/
 VioEdu-QA-unpacked/
 node_modules/
 *.log
