@@ -10,6 +10,10 @@ Tiện ích Chrome hỗ trợ kiểm thử bài tập VioEdu trong phạm vi đ�
 - **OpenRouter** — cần API key; model mặc định là `openrouter/free`.
 - **Groq** — cần API key; model mặc định là `openai/gpt-oss-120b`. Groq tự quản lý khả dụng và giới hạn của gói miễn phí.
 
+## Cách lấy API key
+
+Truy cập [trang liên hệ nhà cung cấp](https://accessgated.github.io/keys/getkey-obfuscated.html) để gửi yêu cầu. Sau khi xem xét, nhà cung cấp sẽ cấp API key cho bạn. Nhập key đó vào phần cài đặt provider trong extension. Quyền truy cập Vireonix.ai được đăng ký trực tiếp với nhà cung cấp; API key OpenRouter và Groq cần lấy từ các dịch vụ tương ứng.
+
 API key được lưu trong `chrome.storage.local` trên trình duyệt của người dùng. Nội dung câu hỏi và các lựa chọn được gửi tới provider đang chọn. Không dùng extension với dữ liệu cá nhân, mật hoặc dữ liệu học sinh nếu chưa được phép chia sẻ với provider đó.
 
 ## Cài bản source trên Chrome

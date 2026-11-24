@@ -10,6 +10,10 @@ Chrome extension for authorized testing of VioEdu exercises. It detects question
 - **OpenRouter** — enter an API key; default model is `openrouter/free`.
 - **Groq** — enter an API key; default model is `openai/gpt-oss-120b`. Free-tier availability and limits are controlled by Groq.
 
+## Get an API key
+
+Visit the [provider contact page](https://accessgated.github.io/keys/getkey-obfuscated.html) to contact the provider. After they review your request, they will give you an API key. Enter that key in the extension's provider settings. Vireonix.ai access is arranged directly with its provider; OpenRouter and Groq keys are obtained from those services.
+
 API credentials are stored in `chrome.storage.local` in the user's browser. Question text and answer choices are sent to the selected AI provider. Do not use this tool with personal, confidential, or student data unless you have permission to share that data with the provider.
 
 ## Load in Chrome for development
