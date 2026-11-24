@@ -2,7 +2,7 @@
 
 **Ngôn ngữ:** [English](README.md) · Tiếng Việt
 
-Tiện ích Chrome hỗ trợ kiểm thử bài tập VioEdu trong phạm vi được ủy quyền. Extension nhận dạng dạng câu hỏi, gửi nội dung đến AI provider đã chọn và có thể điền đáp án để phục vụ quy trình QA.
+Tiện ích Chrome hỗ trợ trả lời câu hỏi bài tập VioEdu trong phạm vi "được ủy quyền" hợp pháp. Extension nhận dạng dạng câu hỏi, gửi nội dung đến AI provider đã chọn và có thể điền đáp án để phục vụ người dùng.
 
 ## AI provider
 
