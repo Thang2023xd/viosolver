@@ -18,7 +18,7 @@ The extension and generated answers are provided for QA assistance. Answers may 
 
 ## Ownership and restrictions
 
-The source code and branding are proprietary. No right to redistribute, sublicense, or use the extension commercially is granted by access to this repository. Separate written permission from the rights holder is required for those uses.
+The source code is licensed under the MIT License; see `LICENSE` for the full permission grant and conditions. These terms do not limit rights granted by that license. VioEdu names, logos, and third-party materials may belong to their respective owners and are not granted by the source-code license.
 
 ## Changes and termination
 

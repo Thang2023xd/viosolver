@@ -8,7 +8,7 @@ Chrome extension for authorized testing of VioEdu exercises. It detects question
 
 - **Vireonix.ai** — default provider; service limits may apply.
 - **OpenRouter** — enter an API key; default model is `openrouter/free`.
-- **Groq** — enter a Groq API key; default model is `openai/gpt-oss-120b`. Free-tier availability and limits are controlled by Groq.
+- **Groq** — enter an API key; default model is `openai/gpt-oss-120b`. Free-tier availability and limits are controlled by Groq.
 
 API credentials are stored in `chrome.storage.local` in the user's browser. Question text and answer choices are sent to the selected AI provider. Do not use this tool with personal, confidential, or student data unless you have permission to share that data with the provider.
 
@@ -19,13 +19,13 @@ API credentials are stored in `chrome.storage.local` in the user's browser. Ques
 3. Open `chrome://extensions/`, enable **Developer mode**, choose **Load unpacked**, and select this repository directory.
 4. Set the provider and API key in the extension popup or page HUD.
 
+The staff-key signing secret is required for staff-key validation and minting. Keep it out of source control. Key generation also requires `VIOEDU_STAFF_KEY_SECRET` in the environment; see `scripts/generate-staff-keys.js`.
+
 ## Automated ZIP builds
 
-GitHub Actions builds a ZIP from the extension source on pushes to `main`, version tags (`v*`), and manual runs. Pushes and manual runs publish a downloadable workflow artifact; a version tag also attaches the ZIP to a GitHub Release.
+GitHub Actions builds a ZIP from the extension source on pushes to `main`, version tags (`v*`), and manual runs. Every build publishes a downloadable workflow artifact. Pushes to `main` also update the `nightly` prerelease; version tags create or update a versioned GitHub Release.
 
 To publish a release, push a tag such as `v1.8.0` after pushing the source to GitHub.
-
-The staff-key signing secret is required for staff-key validation and minting. Keep it out of source control. Key generation also requires `VIOEDU_STAFF_KEY_SECRET` in the environment; see `scripts/generate-staff-keys.js`.
 
 ## Project files
 
@@ -35,10 +35,10 @@ The staff-key signing secret is required for staff-key validation and minting. K
 - `interceptor.js` — observes VioEdu question API responses for QA parsing.
 - `scripts/compute-integrity.js` — regenerates pinned file hashes.
 
-## Repository policy
+## License and repository policy
 
-This repository is proprietary and intended for authorized QA use. See [TERMS.md](TERMS.md), [PRIVACY.md](PRIVACY.md), [LICENSE](LICENSE), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Do not upload the `.pem` signing key, CRX packages, local config, staff whitelist, or staff-key inventories.
+The source code is available under the [MIT License](LICENSE). See [TERMS.md](TERMS.md), [PRIVACY.md](PRIVACY.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). The `.pem` signing key, CRX packages, local config, staff whitelist, and staff-key inventories are excluded from Git.
 
 ## Reporting issues
 
-Please report reproducible bugs through the repository's private issue tracker or contact the repository owner directly. Never include API keys, staff keys, student information, or unredacted page captures in a report.
+Please report reproducible bugs through the repository issue tracker. Never include API keys, staff keys, student information, or unredacted page captures in a report.

@@ -23,7 +23,7 @@ Secret ký staff key cần thiết cho chức năng xác thực và tạo staff 
 
 ## Build ZIP tự động
 
-GitHub Actions tự build ZIP từ source khi push lên `main`, push tag phiên bản dạng `v*`, hoặc chạy workflow thủ công. Push thường và chạy thủ công sẽ tạo artifact tải trong tab **Actions**. Khi push tag phiên bản, ZIP cũng được đính vào GitHub Release.
+GitHub Actions tự build ZIP từ source khi push lên `main`, push tag phiên bản dạng `v*`, hoặc chạy workflow thủ công. Mỗi lần build đều tạo artifact tải trong tab **Actions**. Push lên `main` cũng cập nhật prerelease `nightly`; tag phiên bản sẽ tạo hoặc cập nhật GitHub Release tương ứng.
 
 Để phát hành bản mới, push source lên GitHub rồi push một tag, ví dụ `v1.8.0`.
 
@@ -37,7 +37,7 @@ GitHub Actions tự build ZIP từ source khi push lên `main`, push tag phiên 
 
 ## Quy định repository
 
-Repository này là phần mềm độc quyền, dùng cho QA được ủy quyền. Xem [Terms](TERMS.md), [Privacy](PRIVACY.md), [LICENSE](LICENSE) và [Code of Conduct](CODE_OF_CONDUCT.md). Không upload file ký `.pem`, CRX, cấu hình riêng, whitelist staff hay danh sách staff key.
+Source code được cấp phép theo [MIT License](LICENSE). Xem thêm [Terms](TERMS.md), [Privacy](PRIVACY.md) và [Code of Conduct](CODE_OF_CONDUCT.md). Không upload file ký `.pem`, CRX, cấu hình riêng, whitelist staff hay danh sách staff key.
 
 ## Báo lỗi
 

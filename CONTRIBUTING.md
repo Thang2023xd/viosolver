@@ -8,4 +8,4 @@ Contributions are accepted only from people authorized by the repository owner.
 4. Regenerate integrity files with `node scripts/compute-integrity.js` after editing extension files.
 5. Do not claim a change is verified unless it has been checked in the target Chrome/VioEdu environment.
 
-By submitting a contribution, you confirm that you have the right to submit it and agree that the rights holder may use it in this proprietary project.
+By submitting a contribution, you confirm that you have the right to submit it and agree that your contribution is distributed under the repository's MIT License.
