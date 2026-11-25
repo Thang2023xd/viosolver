@@ -1723,11 +1723,15 @@
         values = [parsed.options[aiResult.chosenIndex].text];
       }
 
-      if (!values.length) values = [parsed.options[0].text];
+      if (!values.length) {
+        addLog('AI did not identify a word-bank answer; left the question unchanged.', 'warn');
+        return;
+      }
       addLog(`AI chọn từ điền: [${values.join(', ')}]`, 'success');
       if (aiResult.explanation) addLog(`Giải: ${aiResult.explanation}`, 'info');
 
       const used = new Set();
+      let matchedCount = 0;
       for (const val of values) {
         const needle = val.toLowerCase();
         const opt = parsed.options.find((o, idx) => {
@@ -1737,12 +1741,18 @@
         });
         if (opt) {
           used.add(opt.index);
+          matchedCount++;
           simulateClick(opt.element);
           await new Promise(r => setTimeout(r, 220));
           addLog(`Đã click chip [${opt.text}]`, 'success');
         } else {
           addLog(`Không thấy chip cho "${val}"`, 'warn');
         }
+      }
+
+      if (matchedCount < (parsed.blankCount || 1)) {
+        addLog('Not all word-bank blanks had a matching chip; skipped auto-submit.', 'warn');
+        return;
       }
 
       if (config.autoSubmit) {
@@ -1759,6 +1769,7 @@
       const dd = parsed.dropdowns[0];
       const targetText = String(aiResult.chosenOption || aiResult.chosenText || aiResult.fillValue || '').trim();
       const normalizedTarget = normalizeMathChoiceText(targetText);
+      let selectionMade = false;
       addLog(`AI chọn phương án dropdown: "${targetText}"`, 'success');
 
       if (dd.element && dd.element.tagName === 'SELECT') {
@@ -1774,6 +1785,7 @@
           select.value = matchedOpt.value;
           select.dispatchEvent(new Event('change', { bubbles: true }));
           select.dispatchEvent(new Event('input', { bubbles: true }));
+          selectionMade = true;
           addLog(`Đã chọn [${matchedOpt.text}] trong dropdown`, 'success');
         }
       } else if (dd.element) {
@@ -1793,10 +1805,16 @@
         if (!matched && Number.isInteger(aiResult.chosenIndex) && liveOpts[aiResult.chosenIndex]) matched = liveOpts[aiResult.chosenIndex];
         if (matched && matched.element) {
           simulateClick(matched.element);
+          selectionMade = true;
           addLog(`Đã chọn [${matched.text}] trong dropdown`, 'success');
         } else {
           addLog(`Không click được option dropdown "${targetText}"`, 'warn');
         }
+      }
+
+      if (!selectionMade) {
+        addLog('No listed dropdown option matched the AI answer; left the question unchanged.', 'warn');
+        return;
       }
 
       if (config.autoSubmit) {
@@ -1830,7 +1848,15 @@
         }
       }
 
-      if (!indices || indices.length === 0) indices = [0];
+      if (!indices || indices.length === 0) {
+        addLog('AI did not identify any listed choices; left the question unchanged.', 'warn');
+        return;
+      }
+      indices = [...new Set(indices)].filter(idx => Number.isInteger(idx) && idx >= 0 && idx < parsed.options.length);
+      if (indices.length === 0) {
+        addLog('AI choices did not match the listed options; left the question unchanged.', 'warn');
+        return;
+      }
 
       addLog(`AI chọn các ý (${indices.length} đáp án): [${indices.map(i => String.fromCharCode(65 + i)).join(', ')}]`, 'success');
       if (aiResult.explanation) addLog(`Giải: ${aiResult.explanation}`, 'info');
@@ -1918,46 +1944,64 @@
       addLog(`AI tính ra kết quả: ${valToFill}`, 'success');
       if (aiResult.explanation) addLog(`Giải: ${aiResult.explanation}`, 'info');
 
+      let missingInputValue = false;
       if (parsed.inputs.length > 0) {
         parsed.inputs.forEach((inp, idx) => {
           const itemVal = (aiResult.fillValues && aiResult.fillValues[idx] !== undefined)
             ? aiResult.fillValues[idx]
             : (parsed.inputs.length === 1 ? valToFill : undefined);
           if (itemVal === undefined || itemVal === null || itemVal === '') {
-            addLog(`Không có đáp án riêng cho ô trống #${idx + 1}; bỏ qua ô này.`, 'warn');
+            missingInputValue = true;
+            addLog('No separate answer for this blank; left it empty.', 'warn');
             return;
           }
           setNativeInputValue(inp, itemVal);
           addLog(`Đã điền [${itemVal}] vào ô trống #${idx + 1}`, 'success');
         });
       }
+      if (missingInputValue) return;
     } else {
       // 2. Multiple choice
       addLog(`AI chọn đáp án: ${JSON.stringify(aiResult.chosenOption || aiResult.chosenText || aiResult.chosenIndex)}`, 'success');
       if (aiResult.explanation) addLog(`Giải: ${aiResult.explanation}`, 'info');
 
-      let targetIdx = aiResult.chosenIndex;
-      if (typeof targetIdx !== 'number' && parsed.options.length > 0) {
-        if (aiResult.chosenOption) {
-          const code = String(aiResult.chosenOption).toUpperCase().charCodeAt(0);
-          if (code >= 65 && code <= 68) targetIdx = code - 65;
-        }
-        if (targetIdx === undefined && aiResult.chosenText) {
-          targetIdx = parsed.options.findIndex(opt =>
-            opt.text.toLowerCase().includes(String(aiResult.chosenText).toLowerCase().trim())
-          );
+      let targetIdx = Number.isInteger(aiResult.chosenIndex) ? aiResult.chosenIndex : undefined;
+      if (targetIdx === undefined && typeof aiResult.chosenIndex === 'string' && /^\d+$/.test(aiResult.chosenIndex.trim())) {
+        targetIdx = Number(aiResult.chosenIndex);
+      }
+
+      const answerText = String(aiResult.chosenText || aiResult.chosenOption || '').trim();
+      if (targetIdx === undefined && answerText) {
+        const letterMatch = /^(?:option\s*)?([A-D])(?:\b|[.):])/i.exec(answerText);
+        if (letterMatch) {
+          targetIdx = letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+        } else {
+          const normalizedAnswer = normalizeMathChoiceText(answerText);
+          const exactMatches = parsed.options
+            .map((opt, idx) => normalizeMathChoiceText(opt.text) === normalizedAnswer ? idx : -1)
+            .filter(idx => idx >= 0);
+          if (exactMatches.length === 1) targetIdx = exactMatches[0];
+          else if (exactMatches.length === 0 && normalizedAnswer) {
+            const partialMatches = parsed.options
+              .map((opt, idx) => normalizeMathChoiceText(opt.text).includes(normalizedAnswer) ? idx : -1)
+              .filter(idx => idx >= 0);
+            if (partialMatches.length === 1) targetIdx = partialMatches[0];
+          }
         }
       }
 
-      const targetEl = getOptionElement(parsed, targetIdx ?? 0);
-      if (targetEl) {
-        simulateClick(targetEl);
-        addLog(`Đã click chọn đáp án [${String.fromCharCode(65 + (targetIdx ?? 0))}]`, 'success');
-      } else if (parsed.options.length > 0) {
-        const fallbackEl = getOptionElement(parsed, 0);
-        if (fallbackEl) simulateClick(fallbackEl);
-        addLog(`Chọn đáp án 1 (Dự phòng)`, 'warn');
+      if (targetIdx === undefined || targetIdx < 0 || targetIdx >= parsed.options.length) {
+        addLog('AI answer did not match a listed option; left the question unchanged.', 'warn');
+        return;
       }
+
+      const targetEl = getOptionElement(parsed, targetIdx);
+      if (!targetEl) {
+        addLog('Could not locate the matched option; left the question unchanged.', 'warn');
+        return;
+      }
+      simulateClick(targetEl);
+      addLog(`Selected option [${String.fromCharCode(65 + targetIdx)}]`, 'success');
     }
 
     // Auto Submit

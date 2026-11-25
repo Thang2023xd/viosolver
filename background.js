@@ -918,10 +918,8 @@ function parseAIResponse(raw) {
     }
 
     if (parsed.chosenIndex === undefined && parsed.chosenOption) {
-      const charCode = String(parsed.chosenOption).toUpperCase().charCodeAt(0);
-      if (charCode >= 65 && charCode <= 68) {
-        parsed.chosenIndex = charCode - 65;
-      }
+      const labelMatch = /^\s*([A-D])\s*(?:[.):]\s*.*)?$/i.exec(String(parsed.chosenOption));
+      if (labelMatch) parsed.chosenIndex = labelMatch[1].toUpperCase().charCodeAt(0) - 65;
     }
     return parsed;
   } catch (err) {
@@ -930,10 +928,8 @@ function parseAIResponse(raw) {
       try {
         const obj = JSON.parse(match[0]);
         if (obj.chosenIndex === undefined && obj.chosenOption) {
-          const charCode = String(obj.chosenOption).toUpperCase().charCodeAt(0);
-          if (charCode >= 65 && charCode <= 68) {
-            obj.chosenIndex = charCode - 65;
-          }
+          const labelMatch = /^\s*([A-D])\s*(?:[.):]\s*.*)?$/i.exec(String(obj.chosenOption));
+          if (labelMatch) obj.chosenIndex = labelMatch[1].toUpperCase().charCodeAt(0) - 65;
         }
         return obj;
       } catch (e) {}

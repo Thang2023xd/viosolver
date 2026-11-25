@@ -3,5 +3,5 @@ var INTEGRITY_PIN = {
   whitelistUrl: "https://raw.githubusercontent.com/accessgated/keys/refs/heads/main/staff-whitelist.txt",
   whitelistUrlHash: "4806b44d51809ce5d414e95b0ac2e465b5029fb9fe4766bfab48244ae3a73f3c",
   hashesFile: 'integrity.hashes.json',
-  hashesFileHash: "e334172ab333d17d52c2be39ba32711bdb05465108dd95ffb1e56ab381cd7f85"
+  hashesFileHash: "bc08b77c1cf7726be2c48cc0fd5f69a64c4f1c64ce778ae5aadf404536dd0d5a"
 };

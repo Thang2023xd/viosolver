@@ -4,12 +4,12 @@
   "whitelistUrlHash": "4806b44d51809ce5d414e95b0ac2e465b5029fb9fe4766bfab48244ae3a73f3c",
   "files": {
     "manifest.json": "7bb65ee550cd6b4eda0bcff2a5340c71a201e94f803456e5a3ccae10e842f331",
-    "background.js": "59d3119bd05466d63b46ce11f846f472f107789c0fac0f328eb6a170cc55f6d9",
-    "content.js": "ad1db08f1a3e0892585c8b5b0b1fb6daf21b5c3371dd7eca549bd9c0c40f0283",
+    "background.js": "e24a021314108005e9397696e690d3e10643a4155db2b1fc7f2b8b327d98b108",
+    "content.js": "88ad62a52f7fc481266c94e1723a4c417dc64f134f08fce0478c1cd6b7c32c81",
     "content.css": "76560260d04467193d4e54f798cf4077fe84ab3645892b01f8aaf2749dc63c29",
     "popup.js": "b4d86437770816f7f775de0485240cdce0433727d872c198c541cd8a7f54c509",
     "popup.html": "168606936c55a692bde287f543be3d46f132d20b065fba055c30eee974823bfb",
     "interceptor.js": "7b7b54ae4aa08f9ff63d9fe4ce257296ca66debd9163fe7fd810d571e572a001"
   },
-  "generatedAt": "2026-11-25T14:36:34.522Z"
+  "generatedAt": "2026-11-25T14:50:43.901Z"
 }
