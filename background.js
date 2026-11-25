@@ -592,7 +592,17 @@ async function dispatchTextQuery(systemPrompt, userPrompt, config, provider) {
       throw err;
     }
   }
-  if (provider === 'groq') return queryGroq(systemPrompt, userPrompt, config.groqModel, config.groqApiKey);
+  if (provider === 'groq') {
+    try {
+      return await queryGroq(systemPrompt, userPrompt, config.groqModel, config.groqApiKey);
+    } catch (err) {
+      if (config.autoFailover && config.openRouterApiKey) {
+        console.warn(`[VioEdu-AI] Groq failed (${err.message}); trying OpenRouter as fallback...`);
+        return queryFallbackProvider(systemPrompt, userPrompt, config, ['groq']);
+      }
+      throw err;
+    }
+  }
   return queryVireonixWithPacing(systemPrompt, userPrompt, config);
 }
 
