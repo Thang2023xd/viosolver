@@ -538,7 +538,7 @@ Exercise types:
 2. Multiple choice (multiple answers allowed / select all that apply): return {"type": "multi_choice", "chosenIndices": [number, number...], "chosenOptions": ["A", "C"...]}
 3. Dropdown selection: return {"type": "dropdown", "chosenIndex": number, "chosenOption": "exact word or text"}
 4. Word selection in sentence (click to underline word): return {"type": "word_click", "chosenWord": "exact word", "chosenIndex": number, "chosenIndices": [number]}
-5. Fill in the blank (typed): return {"type": "fill_blank", "fillValue": string}
+5. Fill in the blank (typed): for one field return {"type": "fill_blank", "fillValue": string}; for multiple fields return {"type": "fill_blank", "fillValues": [one answer per field in page order]}. Never put all field answers into one value.
 6. Word bank / drag-drop / click chips into blanks: return {"type": "word_bank", "fillValues": ["word1", "word2"], "chosenOptions": ["word1", "word2"]}
 7. Matching pairs: return {"type": "matching", "pairs": [{"leftIndex": number, "rightIndex": number}]}
 
@@ -763,7 +763,14 @@ function constructTextPrompt(payload) {
     prompt += `\nOutput JSON: {"type": "word_click", "chosenWord": "<the exact word>", "chosenIndex": number, "chosenIndices": [number]}`;
   } else if (payload.type === 'fill_blank' || (!payload.options || payload.options.length === 0)) {
     prompt += `Calculate and solve the problem:\n${payload.questionText}\n`;
-    prompt += `Output JSON: {"type": "fill_blank", "fillValue": "<exact numerical or text value>"}`;
+    const blankCount = Math.max(1, Number(payload.blankCount) || 1);
+    if (blankCount > 1) {
+      prompt += `There are exactly ${blankCount} separate answer fields. Return one answer per field, in page order. Never combine the answers into one string or include list brackets/commas around the whole set.\n`;
+      const answerExamples = Array.from({ length: blankCount }, (_, index) => `"answer for field ${index + 1}"`).join(', ');
+      prompt += `Output JSON: {"type": "fill_blank", "fillValues": [${answerExamples}]}`;
+    } else {
+      prompt += `Output JSON: {"type": "fill_blank", "fillValue": "<exact numerical or text value>"}`;
+    }
   } else {
     prompt += `Question: ${payload.questionText}\n\nOptions:\n`;
     payload.options.forEach((opt, idx) => {
@@ -868,7 +875,7 @@ function parseAIResponse(raw) {
     if (!parsed.fillValue && parsed.fillValues && parsed.fillValues.length > 0) {
       parsed.fillValue = parsed.fillValues[0];
     }
-    if (parsed.type === 'word_bank' || (Array.isArray(parsed.fillValues) && parsed.fillValues.length > 1)) {
+    if (parsed.type === 'word_bank') {
       parsed.type = 'word_bank';
       if (!parsed.fillValues && parsed.chosenOptions) parsed.fillValues = parsed.chosenOptions;
     }

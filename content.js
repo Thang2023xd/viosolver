@@ -1584,6 +1584,62 @@
     }
   }
 
+  function normalizeMathChoiceText(value) {
+    const superscripts = { '\u2070': '0', '\u00b9': '1', '\u00b2': '2', '\u00b3': '3', '\u2074': '4', '\u2075': '5', '\u2076': '6', '\u2077': '7', '\u2078': '8', '\u2079': '9', '\u207a': '+', '\u207b': '-', '\u207d': '(', '\u207e': ')' };
+    return String(value || '')
+      .replace(/[\u2070\u00b9\u00b2\u00b3\u2074-\u2079\u207a\u207b\u207d\u207e]+/g, run => `^${Array.from(run, ch => superscripts[ch]).join('')}`)
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/\\(?:left|right|displaystyle|textstyle)\b/g, '')
+      .replace(/\\(?:cdot|times)\b/g, '*')
+      .replace(/\\(?:circ|degree)\b/g, '\u00b0')
+      .replace(/[${}\s]/g, '')
+      .replace(/[\u2212\u2013\u2014]/g, '-')
+      .replace(/\\/g, '');
+  }
+
+  function splitBracketedAnswerList(value, expectedCount) {
+    const text = String(value || '').trim();
+    if (expectedCount < 2 || text.length < 2 || text[0] !== '[' || text[text.length - 1] !== ']') return null;
+    const body = text.slice(1, -1);
+    const parts = [];
+    let start = 0;
+    let depth = 0;
+    for (let i = 0; i < body.length; i++) {
+      const ch = body[i];
+      if (ch === '{' || ch === '(' || ch === '[') depth++;
+      else if (ch === '}' || ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+      else if (ch === ',' && depth === 0) {
+        parts.push(body.slice(start, i).trim());
+        start = i + 1;
+      }
+    }
+    parts.push(body.slice(start).trim());
+    return parts.length === expectedCount && parts.every(Boolean) ? parts : null;
+  }
+
+  function recoverMultipleFillValues(aiResult, questionText, expectedCount) {
+    if (Array.isArray(aiResult.fillValues) && aiResult.fillValues.length >= expectedCount) {
+      return aiResult.fillValues.slice(0, expectedCount).map(value => String(value).trim());
+    }
+
+    const assignments = new Map();
+    const explanation = String(aiResult.explanation || '');
+    const assignmentPattern = /(?:^|[\s,;])([A-Z])\s*=\s*(-?\d+(?:\.\d+)?\s*(?:\u00b0|\\circ)?)/g;
+    for (const match of explanation.matchAll(assignmentPattern)) assignments.set(match[1], match[2].trim());
+
+    const questionLabels = Array.from(String(questionText || '').matchAll(/\b([A-Z])\s*(?:=|:)\s*(?:_{2,}|\.{2,}|\u2026)/g), match => match[1]);
+    const orderedLabels = [...new Set(questionLabels)];
+    const labels = orderedLabels.length === expectedCount && orderedLabels.every(label => assignments.has(label))
+      ? orderedLabels
+      : [...assignments.keys()].sort();
+    if (labels.length === expectedCount && labels.every(label => assignments.has(label))) {
+      return labels.map(label => assignments.get(label));
+    }
+
+    return splitBracketedAnswerList(aiResult.fillValue || aiResult.answer || '', expectedCount);
+  }
+
   async function applyAnswer(parsed, aiResult) {
     // 0.3. Word selection / Underline click in sentence
     if (parsed.type === 'word_click' && parsed.interactiveWords && parsed.interactiveWords.length > 0) {
@@ -1701,15 +1757,16 @@
     // 0. Dropdown question (<select> / custom Chọn)
     if (parsed.type === 'dropdown' && parsed.dropdowns && parsed.dropdowns.length > 0) {
       const dd = parsed.dropdowns[0];
-      const targetText = String(aiResult.chosenOption || aiResult.chosenText || aiResult.fillValue || '').toLowerCase().trim();
+      const targetText = String(aiResult.chosenOption || aiResult.chosenText || aiResult.fillValue || '').trim();
+      const normalizedTarget = normalizeMathChoiceText(targetText);
       addLog(`AI chọn phương án dropdown: "${targetText}"`, 'success');
 
       if (dd.element && dd.element.tagName === 'SELECT') {
         const select = dd.element;
-        let matchedOpt = Array.from(select.options).find(o =>
-          (o.text || '').toLowerCase().trim() === targetText || (o.value || '').toLowerCase().trim() === targetText
-        );
-        if (!matchedOpt && !targetText && typeof aiResult.chosenIndex === 'number' && select.options[aiResult.chosenIndex]) {
+        let matchedOpt = normalizedTarget ? Array.from(select.options).find(o =>
+          normalizeMathChoiceText(o.text) === normalizedTarget || normalizeMathChoiceText(o.value) === normalizedTarget
+        ) : null;
+        if (!matchedOpt && Number.isInteger(aiResult.chosenIndex) && select.options[aiResult.chosenIndex]) {
           matchedOpt = select.options[aiResult.chosenIndex];
         }
 
@@ -1729,11 +1786,11 @@
         if (liveOpts.length < 2 && parsed.options) {
           liveOpts = parsed.options.filter(o => o.element);
         }
-        let matched = liveOpts.find(o => (o.text || '').toLowerCase().trim() === targetText);
-        if (!matched) {
-          matched = liveOpts.find(o => (o.text || '').toLowerCase().includes(targetText));
+        let matched = liveOpts.find(o => normalizeMathChoiceText(o.text) === normalizedTarget);
+        if (!matched && normalizedTarget) {
+          matched = liveOpts.find(o => normalizeMathChoiceText(o.text).includes(normalizedTarget));
         }
-        if (!matched && !targetText && typeof aiResult.chosenIndex === 'number') matched = liveOpts[aiResult.chosenIndex];
+        if (!matched && Number.isInteger(aiResult.chosenIndex) && liveOpts[aiResult.chosenIndex]) matched = liveOpts[aiResult.chosenIndex];
         if (matched && matched.element) {
           simulateClick(matched.element);
           addLog(`Đã chọn [${matched.text}] trong dropdown`, 'success');
@@ -1845,9 +1902,15 @@
         valToFill = aiResult.calculation || aiResult.chosenText || aiResult.answer;
       }
 
+      let fillValues = Array.isArray(aiResult.fillValues) ? aiResult.fillValues : null;
+      if (parsed.inputs.length > 1 && (!fillValues || fillValues.length < parsed.inputs.length)) {
+        fillValues = recoverMultipleFillValues(aiResult, parsed.questionText, parsed.inputs.length);
+        if (fillValues) aiResult.fillValues = fillValues;
+      }
+
       if (typeof valToFill === 'string') {
         const numMatch = valToFill.match(/-?\d+(\.\d+)?/);
-        if (numMatch && valToFill.length > 15) {
+        if (parsed.inputs.length <= 1 && numMatch && valToFill.length > 15) {
           valToFill = numMatch[0];
         }
       }
@@ -1857,7 +1920,13 @@
 
       if (parsed.inputs.length > 0) {
         parsed.inputs.forEach((inp, idx) => {
-          const itemVal = (aiResult.fillValues && aiResult.fillValues[idx] !== undefined) ? aiResult.fillValues[idx] : valToFill;
+          const itemVal = (aiResult.fillValues && aiResult.fillValues[idx] !== undefined)
+            ? aiResult.fillValues[idx]
+            : (parsed.inputs.length === 1 ? valToFill : undefined);
+          if (itemVal === undefined || itemVal === null || itemVal === '') {
+            addLog(`Không có đáp án riêng cho ô trống #${idx + 1}; bỏ qua ô này.`, 'warn');
+            return;
+          }
           setNativeInputValue(inp, itemVal);
           addLog(`Đã điền [${itemVal}] vào ô trống #${idx + 1}`, 'success');
         });
